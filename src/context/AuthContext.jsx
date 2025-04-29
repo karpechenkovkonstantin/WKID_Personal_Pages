@@ -9,7 +9,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  const API_URL = import.meta.env.VITE_APP_SCRIPT_URL
+  const API_URL = process.env.VITE_APP_SCRIPT_URL || import.meta.env.VITE_APP_SCRIPT_URL
 
   const verifyToken = async () => {
     try {
