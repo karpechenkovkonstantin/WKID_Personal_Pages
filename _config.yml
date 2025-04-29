@@ -17,4 +17,11 @@ exclude:
   - vite.config.js
   - .git/
   - .gitignore
-  - .gitattributes 
+  - .gitattributes
+  - src/
+  - public/
+  - .github/
+  - .vscode/
+  - README.md
+  - .env
+  - .env.* 
