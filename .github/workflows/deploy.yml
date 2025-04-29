@@ -32,7 +32,7 @@ jobs:
         run: npm ci
       
       - name: Build
-        run: npm run build
+        run: NODE_ENV_MODE=production npm run build
         env:
           VITE_APP_SCRIPT_URL: ${{ secrets.VITE_APP_SCRIPT_URL }}
       
