@@ -3,6 +3,7 @@ import { jwtDecode } from 'jwt-decode'
 import axios from 'axios'
 
 const AuthContext = createContext()
+const tg = window.Telegram.WebApp
 
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(localStorage.getItem('token'))
@@ -11,12 +12,19 @@ export function AuthProvider({ children }) {
 
   const API_URL = process.env.VITE_APP_SCRIPT_URL || import.meta.env.VITE_APP_SCRIPT_URL
 
+  // Инициализация Telegram Web App
+  useEffect(() => {
+    tg.expand()
+    tg.enableClosingConfirmation()
+    document.body.style.backgroundColor = tg.backgroundColor
+  }, [])
+
   const verifyToken = async () => {
     try {
       const response = await axios.get(`${API_URL}`, {
         params: {
           action: 'verifyToken',
-          token
+          token: localStorage.getItem('token')||token
         }
       })
       return response.data.valid
@@ -26,33 +34,75 @@ export function AuthProvider({ children }) {
     }
   }
 
+  const authTelegram = async () => {
+    try {
+      const response = await axios.get(`${API_URL}`, {
+        params: {
+          action: 'authTelegram',
+          telegramId: tg?.initDataUnsafe?.user?.id
+        }
+      })
+      if (response.data.token) {
+        setToken(response.data.token)
+        localStorage.setItem('token', response.data.token)
+        return true
+      }
+    } catch (error) {
+      console.error('Error authenticating Telegram:', error)
+      return false
+    }
+  }
+
   useEffect(() => {
     const checkToken = async () => {
       if (token) {
-        const decoded = jwtDecode(token)
+        const decoded = jwtDecode(token);
         if (decoded.exp * 1000 < Date.now()) {
-          logout()
+          logout();
         } else {
-          const isValid = await verifyToken()
+          const isValid = await verifyToken();
           if (isValid) {
-            await fetchUserInfo()
+            await fetchUserInfo();
           } else {
-            logout()
+            logout();
           }
         }
+        return true;
       } else {
-        setLoading(false)
+        // setLoading(false);
+        return false;
       }
-    }
-    checkToken()
-  }, [token])
+    };
+
+    const checkTelegramAuth = async () => {
+      if (tg?.initDataUnsafe?.user?.id) {
+        const isValid = await authTelegram();
+        if (isValid) {
+          await fetchUserInfo();
+        } else {
+          logout();
+        }
+      }
+      else {
+        console.log('No Telegram ID');
+        setLoading(false);
+      }
+    };
+
+    checkToken().then((tokenValid) => {
+      if (!tokenValid) {
+        checkTelegramAuth();
+      }
+    });
+  }, []);
 
   const fetchUserInfo = async () => {
+    console.log(token);
     try {
       const response = await axios.get(`${API_URL}`, {
         params: {
           action: 'getUserInfo',
-          token
+          token: localStorage.getItem('token')||token
         }
       })
       setUser(response.data)
@@ -89,6 +139,7 @@ export function AuthProvider({ children }) {
     setToken(null)
     setUser(null)
     localStorage.removeItem('token')
+    setLoading(false);
   }
 
   const value = {
@@ -97,7 +148,8 @@ export function AuthProvider({ children }) {
     loading,
     login,
     logout,
-    isAuthenticated: !!token
+    isAuthenticated: !!token,
+    tg
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
