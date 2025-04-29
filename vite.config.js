@@ -9,10 +9,11 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
-    emptyOutDir: true
+    emptyOutDir: true,
+    sourcemap: true
   },
   define: {
     'process.env.VITE_APP_SCRIPT_URL': JSON.stringify(process.env.VITE_APP_SCRIPT_URL)
   },
-  base: '/'
+  base: './'
 }) 
