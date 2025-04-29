@@ -13,5 +13,6 @@ export default defineConfig({
   },
   define: {
     'process.env.VITE_APP_SCRIPT_URL': JSON.stringify(process.env.VITE_APP_SCRIPT_URL)
-  }
+  },
+  base: '/'
 }) 
