@@ -13,8 +13,10 @@ function doGet(e) {
     return handleGetUserInfo(e);
   } else if (action === 'verifyToken') {
     return handleVerifyToken(e);
+  } else if (action === 'authTelegram') {
+    return handleAuthTelegram(e);
   }
-  
+    
   // Возвращаем HTML для React приложения
   return HtmlService.createHtmlOutputFromFile('index')
     .setTitle('Personal Pages')
@@ -29,20 +31,49 @@ function handleAuthentication(e) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(USERS_SHEET);
   const data = sheet.getDataRange().getValues();
   
-  for (let i = 1; i < data.length; i++) {
-    if (data[i][0] === username && data[i][1] === hashPassword(password) && data[i][2].toString().toUpperCase() === "TRUE") {
-      const payload = {
-        username: username,
-        exp: Math.floor(Date.now() / 1000) + (60 * 60)
-      };
-      const token = createJWT(payload);
-      
-      return ContentService.createTextOutput(JSON.stringify({ token }))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
+  const user = data.slice(1).find(col => 
+    col[0].toString() === username.toString() && 
+    col[1].toString() === hashPassword(password).toString() && 
+    col[3].toString().toUpperCase() === "TRUE"
+  );
+
+  if (user) {
+    const payload = {
+      username: username,
+      exp: Math.floor(Date.now() / 1000) + (60 * 60)
+    };
+    const token = createJWT(payload);
+    
+    return ContentService.createTextOutput(JSON.stringify({ token }))
+      .setMimeType(ContentService.MimeType.JSON);
   }
   
   return ContentService.createTextOutput(JSON.stringify({ error: 'Invalid credentials' }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function handleAuthTelegram(e) {
+  const telegramId = e.parameter.telegramId;
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(USERS_SHEET);
+  const data = sheet.getDataRange().getValues();
+  
+  const user = data.slice(1).find(col => 
+    col[2].toString() === telegramId.toString() && 
+    col[3].toString().toUpperCase() === "TRUE"
+  );
+
+  if (user) {
+    const payload = {
+      username: user[0],
+      exp: Math.floor(Date.now() / 1000) + (60 * 60)
+    };
+    const token = createJWT(payload);
+    
+    return ContentService.createTextOutput(JSON.stringify({ token }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  
+  return ContentService.createTextOutput(JSON.stringify({ error: 'User not found, or not active', telegramId: telegramId, data: data }))
     .setMimeType(ContentService.MimeType.JSON);
 }
 
@@ -96,7 +127,7 @@ function handleVerifyToken(e) {
     const data = sheet.getDataRange().getValues();
     
     for (let i = 1; i < data.length; i++) {
-      if (data[i][0] === payload.username &&  data[i][2].toString().toUpperCase() === "TRUE") {
+      if (data[i][0] === payload.username &&  data[i][3].toString().toUpperCase() === "TRUE") {
         return ContentService.createTextOutput(JSON.stringify({ valid: true }))
           .setMimeType(ContentService.MimeType.JSON);
       }
