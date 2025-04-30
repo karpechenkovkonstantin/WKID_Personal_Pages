@@ -97,7 +97,6 @@ export function AuthProvider({ children }) {
   }, []);
 
   const fetchUserInfo = async () => {
-    console.log(token);
     try {
       const response = await axios.get(`${API_URL}`, {
         params: {
@@ -115,22 +114,27 @@ export function AuthProvider({ children }) {
   }
 
   const login = async (username, password) => {
+    setLoading(true)
     try {
       const response = await axios.get(`${API_URL}`, {
         params: {
-          action: 'authenticate',
+          action: 'authenticate', 
           username,
           password
         }
       })
+
       if (response.data.token) {
         setToken(response.data.token)
         localStorage.setItem('token', response.data.token)
+        await fetchUserInfo()
         return true
       }
+      setLoading(false)
       return false
     } catch (error) {
       console.error('Login error:', error)
+      setLoading(false) 
       return false
     }
   }

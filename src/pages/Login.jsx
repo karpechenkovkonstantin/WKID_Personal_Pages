@@ -21,6 +21,7 @@ function Login() {
 
     const success = await login(username, password)
     if (success) {
+
       navigate('/dashboard')
     } else {
       setError('Неверный логин или пароль')
@@ -28,7 +29,16 @@ function Login() {
   }
 
   if (loading) {
-    return <div>Загрузка...</div>
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh'
+      }}>
+        Загрузка...
+      </div>
+    )
   }
 
   return (

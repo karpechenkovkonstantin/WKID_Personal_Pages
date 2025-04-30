@@ -1,0 +1,141 @@
+/* Loading Spinner */
+.loading-spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  min-height: 100px;
+}
+
+.spinner-border {
+  display: inline-block;
+  vertical-align: text-bottom;
+  border: 0.25em solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spinner-border .75s linear infinite;
+}
+
+@keyframes spinner-border {
+  to { transform: rotate(360deg); }
+}
+
+/* Skeleton Card */
+.skeleton-card {
+  background: var(--tg-theme-secondary-bg-color, #f9f9f9);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  animation: pulse 1.5s infinite;
+}
+
+.skeleton-image {
+  width: 100%;
+  height: 200px;
+  background: var(--tg-theme-hint-color, #ccc);
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.skeleton-content {
+  padding: 0.5rem;
+}
+
+.skeleton-title {
+  width: 60%;
+  height: 24px;
+  background: var(--tg-theme-hint-color, #ccc);
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.skeleton-text {
+  width: 100%;
+  height: 16px;
+  background: var(--tg-theme-hint-color, #ccc);
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+/* Skeleton List */
+.skeleton-list {
+  padding: 1rem;
+}
+
+.skeleton-list-item {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  background: var(--tg-theme-secondary-bg-color, #f9f9f9);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  animation: pulse 1.5s infinite;
+}
+
+.skeleton-avatar {
+  width: 40px;
+  height: 40px;
+  background: var(--tg-theme-hint-color, #ccc);
+  border-radius: 50%;
+  margin-right: 1rem;
+}
+
+.skeleton-text-container {
+  flex: 1;
+}
+
+/* Loading Overlay */
+.loading-overlay {
+  position: relative;
+  min-height: 200px;
+}
+
+.loading-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* background: var(--tg-theme-bg-color, #ffffff); */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  opacity: 0.9;
+}
+
+.loading-text {
+  margin-top: 1rem;
+  color: var(--tg-theme-text-color, #000000);
+  font-size: 1rem;
+}
+
+/* Animations */
+@keyframes pulse {
+  0% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0.6;
+  }
+}
+
+/* Fade In Animation */
+.fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+} 
