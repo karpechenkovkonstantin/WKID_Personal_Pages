@@ -1,0 +1,8 @@
+////////////////////////////////////////////////////////////
+// Конфигурация
+////////////////////////////////////////////////////////////
+
+const USERS_SHEET = 'users';
+const INFO_SHEET = 'info';
+const RETENTION_SHEET = 'retention';
+const SECRET_KEY = 'your-secret-key'; // Замените на ваш секретный ключ 
