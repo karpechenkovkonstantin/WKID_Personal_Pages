@@ -2,49 +2,25 @@ import { ResponsiveRadar } from '@nivo/radar'
 import { useState, useEffect } from 'react'
 import { LoadingOverlay, SkeletonCard } from '../components/Loading'
 
-const Retention = () => {
+const Retention = ({data}) => {
     const [isLoading, setIsLoading] = useState(true)
-    const [data, setData] = useState([])
+    const [visualData, setVisualData] = useState([])
 
     useEffect(() => {
-        // Simulate data fetching
-        const fetchData = async () => {
-            // Simulate API delay
-            await new Promise(resolve => setTimeout(resolve, 1500))
-            
-            const mockData = [
-                {
-                    module: "Модуль 2",
-                    продление: 79.78
-                },
-                {
-                    module: "Модуль 3",
-                    продление: 91.67
-                },
-                {
-                    module: "Модуль 4",
-                    продление: 90.57
-                },
-                {
-                    module: "Модуль 5",
-                    продление: 84
-                },
-                {
-                    module: "Модуль 6",
-                    продление: 93.94
-                },
-                {
-                    module: "Модуль 7",
-                    продление: 94.44
-                }
-            ]
-            
-            setData(mockData)
-            setIsLoading(false)
+        if (data.length === 0) {
+            setIsLoading(true)
+            return
         }
-
-        fetchData()
-    }, [])
+        let tempData = []
+        data.forEach((item, index) => {
+            tempData.push({
+                module: 'Модуль ' + (index + 2),
+                продление: item*100
+            })
+        })
+        setVisualData(tempData)
+        setIsLoading(false)
+    }, [data])
 
     // Get the current text color from CSS variables
     const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim();
@@ -54,7 +30,7 @@ const Retention = () => {
             <LoadingOverlay isLoading={isLoading}>
                 {data.length > 0 && !isLoading ? (
                     <ResponsiveRadar
-                        data={data}
+                        data={visualData}
                         keys={[ 'продление' ]}
                         indexBy="module"
                         maxValue={100}

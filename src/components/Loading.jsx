@@ -51,7 +51,7 @@ export const LoadingOverlay = ({ isLoading, children }) => {
   return (
     <div className="loading-overlay">
       <div className="loading-content">
-        {/* <LoadingSpinner /> */}
+        <LoadingSpinner />
         <div className="loading-text">Загрузка...</div>
       </div>
       {children}

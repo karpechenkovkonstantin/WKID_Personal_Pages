@@ -1,32 +1,68 @@
 // Константы для работы с таблицами
 const USERS_SHEET = 'users';
 const INFO_SHEET = 'info';
+const RETENTION_SHEET = 'retention';
 const SECRET_KEY = 'your-secret-key'; // Замените на ваш секретный ключ
 
 // Функция для обработки запросов
-function doGet(e) {
-  const action = e.parameter.action;
-  
-  if (action === 'authenticate') {
-    return handleAuthentication(e);
-  } else if (action === 'getUserInfo') {
-    return handleGetUserInfo(e);
-  } else if (action === 'verifyToken') {
-    return handleVerifyToken(e);
-  } else if (action === 'authTelegram') {
-    return handleAuthTelegram(e);
-  }
+function doPost(e) {
+  try {
+    let response;
+    let action;
+
+    if (e.postData.contents) {
+      const data = JSON.parse(e.postData.contents)||{};
+      action = data.action;
+    } else {
+      action = e.parameter.action;
+    }
     
-  // Возвращаем HTML для React приложения
-  return HtmlService.createHtmlOutputFromFile('index')
-    .setTitle('Personal Pages')
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+    switch (action) {
+      case 'authenticate':
+        response = handleAuthentication(e);
+        break;
+      case 'verifyToken':
+        response = handleVerifyToken(e);
+        break;
+      case 'authTelegram':
+          response = handleAuthTelegram(e);
+          break;
+      case 'getUserInfo':
+        response = handleGetUserInfo(e);
+        break;
+      case 'getUserRetention':
+        response = handleGetUserRetention(e);
+        break;
+      default:
+        response = ContentService.createTextOutput(JSON.stringify({ error: 'Invalid action' }))
+          .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    return response;
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({ error: error.toString() })).setMimeType(ContentService.MimeType.JSON)
+  }
 }
+
+function doGet(e) {
+  let response;
+  try {
+    response = HtmlService.createHtmlOutputFromFile('plug').setTitle('Personal Page plug');
+  }
+  catch (error) {
+    response = ContentService.createTextOutput(JSON.stringify({ error: error.toString() })).setMimeType(ContentService.MimeType.JSON)
+  }
+  finally {
+    return response;
+  }
+}
+
 
 // Обработка аутентификации
 function handleAuthentication(e) {
-  const username = e.parameter.username;
-  const password = e.parameter.password;
+  const contents = e?.postData?.contents ? JSON.parse(e.postData.contents) : {};
+  const username = contents?.username || '';
+  const password = contents?.password || '';
   
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(USERS_SHEET);
   const data = sheet.getDataRange().getValues();
@@ -38,9 +74,11 @@ function handleAuthentication(e) {
   );
 
   if (user) {
+    const userInfo = handleGetUserInfo({userid: username})
     const payload = {
-      username: username,
-      exp: Math.floor(Date.now() / 1000) + (60 * 60)
+      userid: username,
+      exp: Math.floor(Date.now() / 1000) + (60 * 60),
+      ...userInfo
     };
     const token = createJWT(payload);
     
@@ -53,7 +91,7 @@ function handleAuthentication(e) {
 }
 
 function handleAuthTelegram(e) {
-  const telegramId = e.parameter.telegramId;
+  const telegramId = e?.postData?.contents ? JSON.parse(e.postData.contents).telegramId : '';
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(USERS_SHEET);
   const data = sheet.getDataRange().getValues();
   
@@ -63,9 +101,12 @@ function handleAuthTelegram(e) {
   );
 
   if (user) {
+    const userInfo = handleGetUserInfo({userid: user[0]})
     const payload = {
-      username: user[0],
-      exp: Math.floor(Date.now() / 1000) + (60 * 60)
+      userid: user[0],
+      telegramid: telegramId,
+      exp: Math.floor(Date.now() / 1000) + (60 * 60),
+      ...userInfo
     };
     const token = createJWT(payload);
     
@@ -77,10 +118,62 @@ function handleAuthTelegram(e) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
+
+function handleGetUserInfo(payload) {
+  if (!payload) {
+    return { error: 'Invalid token' };
+  }
+  
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(INFO_SHEET);
+  if (!sheet) {
+    return { error: 'Info sheet not found' };
+  }
+
+  const data = sheet.getDataRange().getValues();
+  if (!data || data.length < 2) {
+    return { error: 'No user data found' };
+  }
+  
+  const user = data.slice(1).find(row => row[0] === payload.userid);
+  if (user) {
+    // Проверяем, что все необходимые поля существуют
+    const userInfo = {
+      name: user[1] || '',
+      email: user[2] || '',
+      position: user[3] || '',
+      department: user[4] || ''
+    };
+
+    return userInfo;
+  }
+
+  return { error: 'User not found' };
+}
 // Получение информации о пользователе
-function handleGetUserInfo(e) {
+function fetchGetUserInfo(e) {
   try {
-    const token = e.parameter.token;
+    const token = e?.postData?.contents ? JSON.parse(e.postData.contents).token : '';
+    const payload = verifyJWT(token)
+    let response;
+
+    response = handleGetUserInfo(payload)
+
+    return ContentService.createTextOutput(JSON.stringify(response))
+      .setMimeType(ContentService.MimeType.JSON);
+    
+  } catch (e) {
+    console.error('Error in handleGetUserInfo:', e);
+    return ContentService.createTextOutput(JSON.stringify({ 
+      error: 'Internal server error',
+      details: e.toString()
+    }))
+    .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function handleGetUserRetention(e) {
+  try {
+    const token = e?.postData?.contents ? JSON.parse(e.postData.contents).token : '';
     const payload = verifyJWT(token);
     
     if (!payload) {
@@ -88,33 +181,37 @@ function handleGetUserInfo(e) {
         .setMimeType(ContentService.MimeType.JSON);
     }
     
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(INFO_SHEET);
-    const data = sheet.getDataRange().getValues();
-    
-    for (let i = 1; i < data.length; i++) {
-      if (data[i][0] === payload.username) {
-        return ContentService.createTextOutput(JSON.stringify({
-          name: data[i][1],
-          email: data[i][2],
-          position: data[i][3],
-          department: data[i][4]
-        }))
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(RETENTION_SHEET);
+    if (!sheet) {
+      return ContentService.createTextOutput(JSON.stringify({ error: 'Retention sheet not found' }))
         .setMimeType(ContentService.MimeType.JSON);
-      }
+    }
+
+    const data = sheet.getDataRange().getValues();
+    const retention = data.slice(1).find(row => row[0].toString().startsWith(payload.name.toString())); 
+    if (retention) {
+      const filteredData = retention.slice(1).filter((_, index) => index % 4 === 0);
+      return ContentService.createTextOutput(JSON.stringify({ retention: filteredData }))
+        .setMimeType(ContentService.MimeType.JSON);
     }
     
-    return ContentService.createTextOutput(JSON.stringify({ error: 'User not found' }))
+    return ContentService.createTextOutput(JSON.stringify({ error: 'User retention data not found' }))
       .setMimeType(ContentService.MimeType.JSON);
+    
   } catch (e) {
-    return ContentService.createTextOutput(JSON.stringify({ error: e.toString() }))
-      .setMimeType(ContentService.MimeType.JSON);
+    console.error('Error in handleGetUserRetention:', e);
+    return ContentService.createTextOutput(JSON.stringify({ 
+      error: 'Internal server error',
+      details: e.toString()
+    }))
+    .setMimeType(ContentService.MimeType.JSON);
   }
 }
 
 // Обработка проверки токена
 function handleVerifyToken(e) {
   try {
-    const token = e.parameter.token;
+    const token = e?.postData?.contents ? JSON.parse(e.postData.contents).token : '';
     const payload = verifyJWT(token);
     
     if (!payload) {
@@ -126,11 +223,10 @@ function handleVerifyToken(e) {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(USERS_SHEET);
     const data = sheet.getDataRange().getValues();
     
-    for (let i = 1; i < data.length; i++) {
-      if (data[i][0] === payload.username &&  data[i][3].toString().toUpperCase() === "TRUE") {
-        return ContentService.createTextOutput(JSON.stringify({ valid: true }))
-          .setMimeType(ContentService.MimeType.JSON);
-      }
+    const user = data.slice(1).find(row => row[0] === payload.userid && row[3].toString().toUpperCase() === "TRUE");
+    if (user) {
+      return ContentService.createTextOutput(JSON.stringify({ valid: true }))
+        .setMimeType(ContentService.MimeType.JSON);
     }
     
     return ContentService.createTextOutput(JSON.stringify({ valid: false }))
@@ -149,8 +245,13 @@ function createJWT(payload) {
     typ: 'JWT'
   };
   
-  const encodedHeader = Utilities.base64EncodeWebSafe(JSON.stringify(header));
-  const encodedPayload = Utilities.base64EncodeWebSafe(JSON.stringify(payload));
+  // Convert to UTF-8 before encoding
+  const encodedHeader = Utilities.base64EncodeWebSafe(
+    Utilities.newBlob(JSON.stringify(header)).setContentType('application/json').getBytes()
+  );
+  const encodedPayload = Utilities.base64EncodeWebSafe(
+    Utilities.newBlob(JSON.stringify(payload)).setContentType('application/json').getBytes()
+  );
   const signature = Utilities.computeHmacSha256Signature(
     encodedHeader + '.' + encodedPayload,
     SECRET_KEY
@@ -162,6 +263,7 @@ function createJWT(payload) {
 
 function verifyJWT(token) {
   try {
+    if (!token) return null;
     const parts = token.split('.');
     if (parts.length !== 3) return null;
     
