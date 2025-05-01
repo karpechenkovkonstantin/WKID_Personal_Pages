@@ -5,6 +5,7 @@ import axios from 'axios'
 const AuthContext = createContext()
 const tg = window.Telegram.WebApp
 
+
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(localStorage.getItem('token'))
   const [user, setUser] = useState(null)
@@ -12,6 +13,15 @@ export function AuthProvider({ children }) {
 
   const API_URL = process.env.VITE_APP_SCRIPT_URL || import.meta.env.VITE_APP_SCRIPT_URL
 
+  const fetchConfig = {
+        headers: {
+          'Content-Type': "text/plain;charset=utf-8",
+            },
+        withCredentials: false,
+        maxRedirects: 5,
+        followRedirects: true 
+  }
+  
   // Инициализация Telegram Web App
   useEffect(() => {
     tg.expand()
@@ -19,41 +29,23 @@ export function AuthProvider({ children }) {
     document.body.style.backgroundColor = tg.backgroundColor
   }, [])
 
-  const verifyToken = async () => {
-    try {
-      const response = await axios.get(`${API_URL}`, {
-        params: {
+  useEffect(() => {
+    
+    const verifyToken = async () => {
+      try {
+        const responseData = {
           action: 'verifyToken',
           token: localStorage.getItem('token')||token
         }
-      })
-      return response.data.valid
-    } catch (error) {
-      console.error('Error verifying token:', error)
-      return false
-    }
-  }
+        const response = await axios.post(`${API_URL}`, responseData, fetchConfig)
 
-  const authTelegram = async () => {
-    try {
-      const response = await axios.get(`${API_URL}`, {
-        params: {
-          action: 'authTelegram',
-          telegramId: tg?.initDataUnsafe?.user?.id
-        }
-      })
-      if (response.data.token) {
-        setToken(response.data.token)
-        localStorage.setItem('token', response.data.token)
-        return true
+        return response.data.valid
+      } catch (error) {
+        console.error('Error verifying token:', error)
+        return false
       }
-    } catch (error) {
-      console.error('Error authenticating Telegram:', error)
-      return false
     }
-  }
 
-  useEffect(() => {
     const checkToken = async () => {
       if (token) {
         const decoded = jwtDecode(token);
@@ -62,24 +54,44 @@ export function AuthProvider({ children }) {
         } else {
           const isValid = await verifyToken();
           if (isValid) {
-            await fetchUserInfo();
+            getUserInfo(token)
           } else {
             logout();
+            return false;
           }
         }
+        setLoading(false)
         return true;
       } else {
-        // setLoading(false);
+        setLoading(false);
         return false;
       }
     };
 
-    const checkTelegramAuth = async () => {
+    const checkAuthTelegram = async () => {
+      try {
+        const responseData = {
+          action: 'authTelegram',
+          telegramId: tg?.initDataUnsafe?.user?.id
+        }
+        const response = await axios.post(`${API_URL}`, responseData, fetchConfig)
+
+        if (response.data.token) {
+          setToken(response.data.token)
+          localStorage.setItem('token', response.data.token)
+          getUserInfo(response.data.token)
+          return true
+        }
+      } catch (error) {
+        console.error('Error authenticating Telegram:', error)
+        return false
+      }
+    }
+
+    const telegramAuth = async () => {
       if (tg?.initDataUnsafe?.user?.id) {
-        const isValid = await authTelegram();
-        if (isValid) {
-          await fetchUserInfo();
-        } else {
+        const isValid = await checkAuthTelegram();
+        if (!isValid) {
           logout();
         }
       }
@@ -91,20 +103,31 @@ export function AuthProvider({ children }) {
 
     checkToken().then((tokenValid) => {
       if (!tokenValid) {
-        checkTelegramAuth();
+        telegramAuth();
       }
     });
   }, []);
 
-  const fetchUserInfo = async () => {
+  const getUserInfo = async (jwt) => {
     try {
-      const response = await axios.get(`${API_URL}`, {
-        params: {
-          action: 'getUserInfo',
-          token: localStorage.getItem('token')||token
-        }
+      const decoded = jwtDecode(jwt);
+      setUser(decoded);
+      return decoded;
+    } catch (error) {
+      console.error('Error decoding token:', error);
+      return null;
+    }
+  }
+
+  const fetchUserInfo = async () => {
+    const responseData = {
+      action: 'getUserInfo',
+      token: localStorage.getItem('token')||token
+    }
+    try {
+      axios.post(`${API_URL}`, responseData, fetchConfig).then((response)=>{
+        setUser(response.data)
       })
-      setUser(response.data)
     } catch (error) {
       console.error('Error fetching user info:', error)
       logout()
@@ -115,19 +138,18 @@ export function AuthProvider({ children }) {
 
   const login = async (username, password) => {
     setLoading(true)
-    try {
-      const response = await axios.get(`${API_URL}`, {
-        params: {
-          action: 'authenticate', 
-          username,
-          password
-        }
-      })
+    const responseData = {
+      action: 'authenticate',
+      username,
+      password
+    }
 
+    try {
+      const response = await axios.post(`${API_URL}`, responseData, fetchConfig)
       if (response.data.token) {
         setToken(response.data.token)
         localStorage.setItem('token', response.data.token)
-        await fetchUserInfo()
+        getUserInfo(response.data.token)
         return true
       }
       setLoading(false)
@@ -146,6 +168,20 @@ export function AuthProvider({ children }) {
     setLoading(false);
   }
 
+  const getUserRetention = async () => {
+    const responseData = {
+      action: 'getUserRetention',
+      token: localStorage.getItem('token')||token
+    }
+    try {
+      const response = await axios.post(`${API_URL}`, responseData, fetchConfig)
+      return response.data
+    } catch (error) {
+      console.error('Error fetching user retention:', error)
+      return null
+    }
+  }
+
   const value = {
     token,
     user,
@@ -153,7 +189,10 @@ export function AuthProvider({ children }) {
     login,
     logout,
     isAuthenticated: !!token,
-    tg
+    tg,
+    fetches:{
+      getUserRetention
+    }
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

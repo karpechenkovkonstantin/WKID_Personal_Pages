@@ -95,8 +95,10 @@ button:hover {
 .logout-btn {
   margin-top: 20px;
   background-color: var(--error-color);
+  cursor: pointer;
 }
 
 .logout-btn:hover {
   background-color: var(--error-hover-color);
+  cursor: pointer;
 } 

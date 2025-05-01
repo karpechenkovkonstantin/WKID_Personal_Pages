@@ -5,23 +5,26 @@ import { LoadingOverlay, SkeletonCard } from '../components/Loading'
 import { useState, useEffect } from 'react'
 
 function Dashboard() {
-  const { user, logout } = useAuth()
+  const { user, logout, fetches } = useAuth()
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(true)
+  const [retentionData, setRetentionData] = useState([])
 
   useEffect(() => {
-    // Simulate loading delay
-    const timer = setTimeout(() => {
+    if (user) {
+      console.log(user)
       setIsLoading(false)
-    }, 1000)
-    return () => clearTimeout(timer)
-  }, [])
+      fetches?.getUserRetention().then(data => {
+        setRetentionData(data?.retention||[])
+      })
+    }
+  }, [user])
+
 
   const handleLogout = () => {
     logout()
     navigate('/')
   }
-
   if (!user) {
     return (
       <div className="fade-in">
@@ -42,7 +45,7 @@ function Dashboard() {
           <p>Отдел: {user.department}</p>
         </div>
       
-        <Retention />
+        <Retention data={retentionData}/>
         <button className="logout-btn" onClick={handleLogout}>
           Выйти
         </button>
