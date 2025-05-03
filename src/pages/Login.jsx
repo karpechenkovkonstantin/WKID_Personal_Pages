@@ -22,7 +22,6 @@ function Login() {
       setError('Ошибка при входе. Попробуйте позже.')
     }
   }
-
   useEffect(() => {
     if (token && !loading) {
       navigate('/dashboard')

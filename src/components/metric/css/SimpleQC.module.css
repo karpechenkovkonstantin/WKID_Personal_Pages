@@ -1,13 +1,15 @@
+@import '../../../components/css/index.css';
+
 .qc-container {
   margin: 20px 0;
   padding: 15px;
   border-radius: 10px;
-  background-color: var(--tg-theme-bg-color, #ffffff);
+  background-color: var(--user-info-background, #f9f9f9);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  border: 1px solid var(--tg-theme-hint-color, #e0e0e0);
   transition: all 0.3s ease;
   overflow: hidden;
 }
+
 
 .qc-title {
   margin-top: 0;
@@ -79,7 +81,7 @@
   height: 100%;
 }
 
-.calendar-container svg rect:not([fill="transparent"]):not([fill="rgb(238, 238, 238)"]):not([style*="fill: rgb(238, 238, 238)"]):not([fill="#333333"]):not([style*="fill: rgb(51, 51, 51)"]) {
+.calendar-container svg rect:not([fill="transparent"]):not([fill="#708499"]):not([style*="fill: rgb(238, 238, 238)"]):not([fill="#ffffff"]):not([style*="fill: rgb(51, 51, 51)"]) {
   cursor: pointer;
 }
 

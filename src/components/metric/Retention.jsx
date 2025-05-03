@@ -1,11 +1,12 @@
 import { ResponsiveRadar } from '@nivo/radar'
 import { useState, useEffect } from 'react'
-import { LoadingOverlay, SkeletonCard } from '../Loading'
+import { LoadingOverlay } from '../Loading'
+import { useAuth } from '../../context/AuthContext'
 
 const Retention = ({data, isMobile}) => {
     const [isLoading, setIsLoading] = useState(true)
     const [visualData, setVisualData] = useState([])
-
+    const { tg } = useAuth()
     useEffect(() => {
         if (data.length === 0) {
             setIsLoading(true)
@@ -24,6 +25,9 @@ const Retention = ({data, isMobile}) => {
 
     // Get the current text color from CSS variables
     const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim();
+    const isDarkTheme = tg?.themeParams?.text_color && 
+                       tg.themeParams.text_color.toLowerCase() !== '#000000' && 
+                       tg.themeParams.text_color.toLowerCase() !== 'rgb(0, 0, 0)'
 
     return (
         <div className='metric-container fade-in' style={{ height: '50vmax', marginTop: '20px', marginBottom: '20px' }}>
@@ -36,19 +40,21 @@ const Retention = ({data, isMobile}) => {
                         maxValue={100}
                         valueFormat=">-.2f"
                         margin={isMobile 
-                            ? { top: 40, right: 40, bottom: 40, left: 40 } 
-                            : { top: 70, right: 80, bottom: 70, left: 80 }}
+                            ? { top: 20, right: 20, bottom: 20, left: 20 } 
+                            : { top: 40, right: 40, bottom: 40, left: 40 }}
                         curve="linearClosed"
                         borderColor={{ from: 'color', modifiers: [] }}
                         gridShape="linear"
-                        gridLabelOffset={36}
+                        gridLabelOffset={isMobile ? 12 : 24}
                         dotSize={isMobile ? 8 : 10}
                         dotColor={{ theme: 'background' }}
                         dotBorderWidth={2}
                         dotBorderColor={{ from: 'color', modifiers: [] }}
+                        dotLabelYOffset={isMobile ? -10 : -12}
                         enableDotLabel={true}
-                        colors={{ scheme: 'nivo' }}
-                        blendMode="multiply"
+                        colors={{scheme:  isDarkTheme ?  'blues' : 'tableau10'}}
+                        fillOpacity={0.3}
+                        blendMode={isDarkTheme ?  "screen" : "multiply"}
                         motionConfig="wobbly"
                         isInteractive={false}
                         theme={{

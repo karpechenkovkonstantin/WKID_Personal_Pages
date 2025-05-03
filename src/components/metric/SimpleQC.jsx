@@ -31,11 +31,12 @@ const SimpleQC = ({data, onDateSelect, isMobile}) => {
 
     // Определение цветов в зависимости от темы
     const themeColors = {
-        emptyColor: isDarkTheme ? '#333333' : '#eeeeee',
-        dayBorderColor: isDarkTheme ? '#222222' : '#ffffff',
+        emptyColor: isDarkTheme ? '#708499' : '#ffffff',
+        dayBorderColor: isDarkTheme ? '#2e2e2e' : '#e2e2e2',
+        textColor: isDarkTheme ? '#ffffff' : '#000000',
         colors: isDarkTheme 
-            ? [ '#f47560', '#e8c1a0', '#97e3d5', '#61cdbb'] 
-            : [ '#f47560', '#e8c1a0', '#97e3d5', '#61cdbb'],
+            ? [ '#d3312b', '#fba760', '#c3e57e', '#06733d'] 
+            : [ '#d3312b', '#fba760', '#c3e57e', '#06733d'],
     }
 
     const handleDayClick = (day) => {
@@ -44,7 +45,7 @@ const SimpleQC = ({data, onDateSelect, isMobile}) => {
             onDateSelect(day.day);
         }
     }
-
+    
     return (
         <div className={styles["qc-container"] + " " + styles["fade-in"]} ref={containerRef}>
             <h3 className={styles["qc-title"]}>Качество преподавания</h3>
@@ -67,16 +68,30 @@ const SimpleQC = ({data, onDateSelect, isMobile}) => {
                             to={periodEnd}
                             emptyColor={themeColors.emptyColor}
                             colors={themeColors.colors}
-                            minValue="auto"
+                            minValue={1}
+                            maxValue={4}
                             margin={isMobile 
                                 ? { top: 20, right: 10, bottom: 20, left: 10 } 
                                 : { top: 40, right: 40, bottom: 100, left: 40 }}
                             weekdayLegendOffset={isMobile ? 15 : 68}
                             dayRadius={isMobile ? 3 : 8}
-                            daySpacing={isMobile ? 1 : 2}
+                            daySpacing={isMobile ? 2 : 3}
                             dayBorderWidth={1}
                             dayBorderColor={themeColors.dayBorderColor}
                             legends={[]}
+                            theme={{
+                                labels: {
+                                    text: {
+                                        fill: themeColors.textColor
+                                    }
+                                },
+                                tooltip: {
+                                    container: {
+                                        background: isDarkTheme ? '#333' : '#fff',
+                                        color: themeColors.textColor
+                                    }
+                                }
+                            }}
                             tooltip={({ day, value, color }) => (
                                 <div className={styles["calendar-tooltip"]}>
                                     <span className={styles["tooltip-date"]}>{day}</span>
