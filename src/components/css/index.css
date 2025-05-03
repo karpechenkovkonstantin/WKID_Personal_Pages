@@ -1,5 +1,5 @@
 :root {
-  /* Default colors */
+  /* Стандартные цвета */
   --primary-color: #4CAF50;
   --primary-hover-color: #45a049;
   --error-color: #f44336;
@@ -9,9 +9,10 @@
   --border-color: #ccc;
   --input-background: #ffffff;
   --user-info-background: #f9f9f9;
+  --button-text-color: #ffffff;
 }
 
-/* Telegram Web App colors will be set via JavaScript */
+/* Цвета Telegram WebApp будут установлены через JavaScript */
 .telegram-theme {
   --primary-color: var(--tg-theme-button-color, #4CAF50);
   --primary-hover-color: var(--tg-theme-button-color, #45a049);
@@ -22,6 +23,24 @@
   --border-color: var(--tg-theme-hint-color, #ccc);
   --input-background: var(--tg-theme-secondary-bg-color, #ffffff);
   --user-info-background: var(--tg-theme-secondary-bg-color, #f9f9f9);
+  --button-text-color: var(--tg-theme-button-text-color, #ffffff);
+}
+
+/* Класс темной темы, применяемый через ThemeContext */
+.dark-theme {
+  --background-color: #212121;
+  --text-color: #ffffff;
+  --border-color: #444;
+  --input-background: #333;
+  --user-info-background: #333;
+  --button-text-color: #ffffff;
+}
+
+/* Приоритет Telegram темы над темной темой */
+.telegram-theme.dark-theme {
+  --background-color: var(--tg-theme-bg-color, #212121);
+  --text-color: var(--tg-theme-text-color, #ffffff);
+  --border-color: var(--tg-theme-hint-color, #444);
 }
 
 body {
@@ -30,6 +49,7 @@ body {
   min-height: 100vh;
   background-color: var(--background-color);
   color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .container {
@@ -45,6 +65,7 @@ body {
 label {
   display: block;
   margin-bottom: 5px;
+  color: var(--text-color);
 }
 
 input {
@@ -55,16 +76,18 @@ input {
   border-radius: 4px;
   background-color: var(--input-background);
   color: var(--text-color);
+  transition: border-color 0.3s ease, background-color 0.3s ease;
 }
 
 button {
   background-color: var(--primary-color);
-  color: var(--tg-theme-button-text-color, white);
+  color: var(--button-text-color);
   padding: 10px 15px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   width: 100%;
+  transition: background-color 0.3s ease;
 }
 
 button:hover {
@@ -72,7 +95,7 @@ button:hover {
 }
 
 .error {
-  color: red;
+  color: var(--error-color);
   margin-top: 10px;
 }
 
@@ -81,6 +104,7 @@ button:hover {
   padding: 20px;
   border-radius: 5px;
   margin-top: 20px;
+  transition: background-color 0.3s ease;
 }
 
 .metric-container {
@@ -90,6 +114,7 @@ button:hover {
   height: 50vmax;
   margin-top: 20px;
   margin-bottom: 20px;
+  transition: background-color 0.3s ease;
 }
 
 .logout-btn {

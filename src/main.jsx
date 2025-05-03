@@ -7,16 +7,9 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 import './components/css/index.css'
 import { applyTelegramTheme } from './theme'
 
-// Apply Telegram theme if available
+// Применяем тему Telegram, если доступна - это только начальная стилизация
+// ThemeContext возьмет на себя управление после монтирования React
 applyTelegramTheme();
-
-// Инициализация Telegram Web App
-const tg = window.Telegram.WebApp;
-tg.expand();
-tg.enableClosingConfirmation();
-
-// Установка цвета фона в соответствии с темой Telegram
-document.body.style.backgroundColor = tg.backgroundColor;
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
