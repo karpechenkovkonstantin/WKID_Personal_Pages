@@ -26,7 +26,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     tg.expand()
     tg.enableClosingConfirmation()
-    document.body.style.backgroundColor = tg.backgroundColor
+    // Фон устанавливается в ThemeContext
   }, [])
 
   useEffect(() => {

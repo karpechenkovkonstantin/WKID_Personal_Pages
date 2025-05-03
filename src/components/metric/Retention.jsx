@@ -1,12 +1,13 @@
 import { ResponsiveRadar } from '@nivo/radar'
 import { useState, useEffect } from 'react'
 import { LoadingOverlay } from '../Loading'
-import { useAuth } from '../../context/AuthContext'
+import { useTheme } from '../../context/ThemeContext'
 
 const Retention = ({data, isMobile}) => {
     const [isLoading, setIsLoading] = useState(true)
     const [visualData, setVisualData] = useState([])
-    const { tg } = useAuth()
+    const { isDarkTheme, themeColors } = useTheme()
+    
     useEffect(() => {
         if (data.length === 0) {
             setIsLoading(true)
@@ -25,9 +26,6 @@ const Retention = ({data, isMobile}) => {
 
     // Get the current text color from CSS variables
     const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim();
-    const isDarkTheme = tg?.themeParams?.text_color && 
-                       tg.themeParams.text_color.toLowerCase() !== '#000000' && 
-                       tg.themeParams.text_color.toLowerCase() !== 'rgb(0, 0, 0)'
 
     return (
         <div className='metric-container fade-in' style={{ height: '50vmax', marginTop: '20px', marginBottom: '20px' }}>
@@ -52,19 +50,19 @@ const Retention = ({data, isMobile}) => {
                         dotBorderColor={{ from: 'color', modifiers: [] }}
                         dotLabelYOffset={isMobile ? -10 : -12}
                         enableDotLabel={true}
-                        colors={{scheme:  isDarkTheme ?  'blues' : 'tableau10'}}
+                        colors={{scheme: themeColors.colorScheme}}
                         fillOpacity={0.3}
-                        blendMode={isDarkTheme ?  "screen" : "multiply"}
+                        blendMode={themeColors.blendMode}
                         motionConfig="wobbly"
                         isInteractive={false}
                         theme={{
                             text: {
-                                fill: textColor,
+                                fill: themeColors.textColor,
                                 fontSize: isMobile ? 10 : 12,
                             },
                             grid: {
                                 line: {
-                                    stroke: textColor,
+                                    stroke: themeColors.textColor,
                                     strokeWidth: 1,
                                     strokeOpacity: 0.2,
                                 }

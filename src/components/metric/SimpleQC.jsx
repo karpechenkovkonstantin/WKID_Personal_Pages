@@ -1,11 +1,11 @@
 import { ResponsiveTimeRange } from '@nivo/calendar'
 import { useState, useEffect, useRef } from 'react'
 import { LoadingOverlay } from '../Loading'
-import { useAuth } from '../../context/AuthContext'
+import { useTheme } from '../../context/ThemeContext'
 import styles from './css/SimpleQC.module.css'
 
 const SimpleQC = ({data, onDateSelect, isMobile}) => {
-    const { tg } = useAuth()
+    const { isDarkTheme, themeColors } = useTheme()
     const [isLoading, setIsLoading] = useState(true)
     const [visualData, setVisualData] = useState([])
     const [selectedDay, setSelectedDay] = useState(null)
@@ -25,20 +25,6 @@ const SimpleQC = ({data, onDateSelect, isMobile}) => {
         setIsLoading(false)
     }, [data])
 
-    const isDarkTheme = tg?.themeParams?.text_color && 
-                       tg.themeParams.text_color.toLowerCase() !== '#000000' && 
-                       tg.themeParams.text_color.toLowerCase() !== 'rgb(0, 0, 0)'
-
-    // Определение цветов в зависимости от темы
-    const themeColors = {
-        emptyColor: isDarkTheme ? '#708499' : '#ffffff',
-        dayBorderColor: isDarkTheme ? '#2e2e2e' : '#e2e2e2',
-        textColor: isDarkTheme ? '#ffffff' : '#000000',
-        colors: isDarkTheme 
-            ? [ '#d3312b', '#fba760', '#c3e57e', '#06733d'] 
-            : [ '#d3312b', '#fba760', '#c3e57e', '#06733d'],
-    }
-
     const handleDayClick = (day) => {
         if (day.value > 0 && onDateSelect) {
             setSelectedDay(day.day);
@@ -54,8 +40,6 @@ const SimpleQC = ({data, onDateSelect, isMobile}) => {
                     <div className={styles["calendar-container"]} style={{ width: '100%', height: isMobile ? "200px" : "350px"}}>
                         <ResponsiveTimeRange
                             onClick={handleDayClick}
-                            // height={isMobile ? 250 : 380}
-                            // width={isMobile ? 300 : 500}
                             monthLegend={(year, month, date) => {
                                 const months = ['Янв', 'Фев', 'Март', 'Апр', 'Май', 'Июнь', 'Июль', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'];
                                 return months[date.getMonth()];
@@ -67,7 +51,7 @@ const SimpleQC = ({data, onDateSelect, isMobile}) => {
                             from={periodStart}
                             to={periodEnd}
                             emptyColor={themeColors.emptyColor}
-                            colors={themeColors.colors}
+                            colors={themeColors.chartColors}
                             minValue={1}
                             maxValue={4}
                             margin={isMobile 

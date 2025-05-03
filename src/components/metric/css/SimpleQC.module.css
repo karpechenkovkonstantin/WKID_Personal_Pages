@@ -10,23 +10,24 @@
   overflow: hidden;
 }
 
-
 .qc-title {
   margin-top: 0;
   margin-bottom: 20px;
   font-size: 18px;
-  color: var(--tg-theme-text-color, #000000);
+  color: var(--text-color, #000000);
   text-align: center;
 }
 
 /* Стили для темной темы */
+.dark-theme .qc-container, 
 .telegram-theme .qc-container {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 /* Исправление для SVG элементов в темной теме */
+.dark-theme text, 
 .telegram-theme text {
-  fill: var(--tg-theme-text-color, #000) !important;
+  fill: var(--text-color, #000) !important;
 }
 
 /* Адаптивные стили для мобильных устройств */
@@ -70,10 +71,11 @@
 
 .calendar-tooltip {
   padding: 10px;
-  background-color: var(--tg-theme-bg-color, #ffffff);
+  background-color: var(--background-color, #ffffff);
   border-radius: 5px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   font-size: 0.8em;
+  color: var(--text-color, #000000);
 }
 
 .calendar-container {
@@ -92,12 +94,12 @@
 }
 
 .tooltip-value {
-  font-weight: bold;
+  display: block;
+  margin-bottom: 3px;
 }
 
 .tooltip-hint {
+  font-size: 0.85em;
+  opacity: 0.8;
   margin-top: 5px;
-  font-size: 0.8em;
-  font-style: italic;
-  color: var(--tg-theme-hint-color, #888888);
 } 

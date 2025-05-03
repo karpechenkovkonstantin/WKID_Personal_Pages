@@ -61,14 +61,13 @@ function Dashboard() {
   return (
     <div className="fade-in">
       <LoadingOverlay isLoading={isLoading}>
-        <h2>Информация о пользователе</h2>
         <div className="user-info">
-          <h3>{user.name}</h3>
+          <h4>{user.name}</h4>
           <p>Email: {user.email}</p>
           <p>Должность: {user.position}</p>
           <p>Отдел: {user.department}</p>
         </div>
-      
+        
         <Retention data={retentionData} isMobile={isMobile}/>
         <SimpleQC data={qualityData?.grades} onDateSelect={handleDateSelect} isMobile={isMobile}/>
         
