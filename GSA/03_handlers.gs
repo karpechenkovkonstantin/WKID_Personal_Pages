@@ -129,6 +129,123 @@ function handleGetUserRetention(e) {
   }
 }
 
+function handleGetUserQuality(e) {
+  try {
+    const token = e?.postData?.contents ? JSON.parse(e.postData.contents).token : '';
+    const payload = verifyJWT(token);
+    
+    if (!payload) {
+      return ContentService.createTextOutput(JSON.stringify({ error: 'Invalid token' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // Инициализируем пустые массивы и объекты для хранения результатов
+    const allGrades = [];
+    const allGradesInfo = {};
+    const dict = {};
+    
+    // Перебираем все таблицы QUALITY_EXT_SHEET
+    for (const sheetName of QUALITY_EXT_SHEET) {
+      const extSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+      
+      // Если таблица не существует, пропускаем
+      if (!extSheet) continue;
+      
+      const extData = extSheet.getDataRange().getValues();
+      const extStartIndex = 8;
+      const extEndIndex = extData.slice(extStartIndex).findIndex(row => row[1]?.length === 0) + extStartIndex;
+      const extBody = extData.slice(extStartIndex, extEndIndex);
+      const extRawDict = extBody.map(row => row[1]);
+      const extDates = extData[3].map(date => new Date(date).toLocaleDateString('en-CA'));
+      const extFiles = extData[1].map(file => file);
+      const extRecords = extData[2].map(record => record);
+      const extRatings = extData[7].map(rating => rating);
+      
+      // Добавляем записи словаря
+      extRawDict.forEach((item, index) => {
+        dict[index] = item;
+      });
+      
+      const extUserIndices = extData[0].reduce((acc, row, index) => {
+        if (row.startsWith(payload?.name)) acc.push(index);
+        return acc;
+      }, []);
+      
+      extUserIndices.forEach(userIndex => {
+        // Добавляем оценки
+        allGrades.push({
+          day: extDates[userIndex],
+          value: QUALITY_GRADES[extRatings[userIndex]]
+        });
+        
+        // Добавляем информацию о оценках
+        allGradesInfo[extDates[userIndex]] = {
+          reaction: extBody
+            .map((row, rowIndex) => ({ 
+              dictIndex: rowIndex,
+              value: row[userIndex]
+            }))
+            .filter(item => item.value !== "Не противоречит"),
+          files: extFiles[userIndex],
+          records: extRecords[userIndex],
+          dates: extDates[userIndex],
+        };
+      });
+    }
+    
+    // Проверяем, если данные не найдены
+    if (allGrades.length === 0) {
+      return ContentService.createTextOutput(JSON.stringify({ error: 'User quality data not found' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // Сортируем оценки по дате
+    allGrades.sort((a, b) => new Date(a.day) - new Date(b.day));
+    
+    // Определяем первую и последнюю дату через min и max
+    const dateTimes = allGrades.map(grade => new Date(grade.day).getTime());
+    const firstDate = new Date(Math.min(...dateTimes)).toLocaleDateString('en-CA');
+    const lastDate = new Date(Math.max(...dateTimes)).toLocaleDateString('en-CA');
+    
+    const answer = {
+      grades: {
+        quality: allGrades, 
+        period: {start: firstDate, end: lastDate}
+      }, 
+      reviews: {
+        grades: allGradesInfo, 
+        dict: dict
+      }
+    };
+    
+    return ContentService.createTextOutput(JSON.stringify(answer))
+      .setMimeType(ContentService.MimeType.JSON);
+    
+  } catch (e) {
+    console.error('Error in handleGetUserQuality:', e);
+    return ContentService.createTextOutput(JSON.stringify({ 
+      error: 'Internal server error',
+      details: e.toString()
+    }))
+    .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function handleGetQualityExt(e) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(QUALITY_EXT_SHEET);
+  if (!sheet) {
+    return ContentService.createTextOutput(JSON.stringify({ error: 'Quality ext sheet not found' }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  const data = sheet.getDataRange().getValues();
+
+  return ContentService.createTextOutput(JSON.stringify({ grades: data }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+
+
 // Обработка проверки токена
 function handleVerifyToken(e) {
   try {

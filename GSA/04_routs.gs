@@ -27,6 +27,12 @@ function doPost(e) {
       case 'getUserRetention':
         response = handleGetUserRetention(e);
         break;
+      case 'getUserQuality':
+        response = handleGetUserQuality(e);
+        break;
+      case 'getQualityExt':
+        response = handleGetQualityExt(e);
+        break;
       default:
         response = ContentService.createTextOutput(JSON.stringify({ error: 'Invalid action' }))
           .setMimeType(ContentService.MimeType.JSON);

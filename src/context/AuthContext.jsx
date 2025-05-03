@@ -48,31 +48,43 @@ export function AuthProvider({ children }) {
 
     const checkToken = async () => {
       if (token) {
-        const decoded = jwtDecode(token);
-        if (decoded.exp * 1000 < Date.now()) {
-          logout();
-        } else {
-          const isValid = await verifyToken();
-          if (isValid) {
-            getUserInfo(token)
-          } else {
+        try {
+          const decoded = jwtDecode(token);
+          if (decoded.exp * 1000 < Date.now()) {
             logout();
             return false;
+          } else {
+            const isValid = await verifyToken();
+            if (isValid) {
+              getUserInfo(token);
+              setLoading(false);
+              return true;
+            } else {
+              logout();
+              return false;
+            }
           }
+        } catch (error) {
+          console.error('Error decoding token:', error);
+          logout();
+          return false;
         }
-        setLoading(false)
-        return true;
       } else {
-        setLoading(false);
         return false;
       }
     };
 
     const checkAuthTelegram = async () => {
       try {
+        if (!tg?.initDataUnsafe?.user?.id) {
+          console.log('No Telegram ID');
+          setLoading(false);
+          return false;
+        }
+        
         const responseData = {
           action: 'authTelegram',
-          telegramId: tg?.initDataUnsafe?.user?.id
+          telegramId: tg.initDataUnsafe.user.id
         }
         const response = await axios.post(`${API_URL}`, responseData, fetchConfig)
 
@@ -80,32 +92,37 @@ export function AuthProvider({ children }) {
           setToken(response.data.token)
           localStorage.setItem('token', response.data.token)
           getUserInfo(response.data.token)
+          setLoading(false)
           return true
+        } else {
+          setLoading(false)
+          return false
         }
       } catch (error) {
         console.error('Error authenticating Telegram:', error)
+        setLoading(false)
         return false
       }
     }
 
-    const telegramAuth = async () => {
-      if (tg?.initDataUnsafe?.user?.id) {
-        const isValid = await checkAuthTelegram();
-        if (!isValid) {
-          logout();
+    const authenticate = async () => {
+      setLoading(true); // Установка плашки загрузки при старте проверки
+      
+      // Сначала проверяем существующий токен
+      const tokenValid = await checkToken();
+      
+      // Если токен не валиден или отсутствует, пробуем войти через Telegram
+      if (!tokenValid) {
+        const telegramValid = await checkAuthTelegram();
+        
+        // Если ни токен, ни Telegram не прошли, показываем форму логина
+        if (!telegramValid) {
+          setLoading(false);
         }
-      }
-      else {
-        console.log('No Telegram ID');
-        setLoading(false);
       }
     };
 
-    checkToken().then((tokenValid) => {
-      if (!tokenValid) {
-        telegramAuth();
-      }
-    });
+    authenticate();
   }, []);
 
   const getUserInfo = async (jwt) => {
@@ -182,6 +199,35 @@ export function AuthProvider({ children }) {
     }
   }
 
+  const getUserQuality = async () => {
+    const responseData = {
+      action: 'getUserQuality',
+      token: localStorage.getItem('token')||token
+    }
+    try {
+      const response = await axios.post(`${API_URL}`, responseData, fetchConfig)
+      return response.data
+    } catch (error) {
+      console.error('Error fetching user quality:', error)
+      return null
+    }
+    
+  }
+
+  const getQualityExt = async () => {
+    const responseData = {
+      action: 'getQualityExt',
+      token: localStorage.getItem('token')||token
+    }
+    try {
+      const response = await axios.post(`${API_URL}`, responseData, fetchConfig)
+      return response.data
+    } catch (error) {
+      console.error('Error fetching quality ext:', error)
+      return null
+    }
+  }
+
   const value = {
     token,
     user,
@@ -191,7 +237,9 @@ export function AuthProvider({ children }) {
     isAuthenticated: !!token,
     tg,
     fetches:{
-      getUserRetention
+      getUserRetention,
+      getUserQuality,
+      getQualityExt
     }
   }
 

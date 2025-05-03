@@ -4,7 +4,7 @@ import { HashRouter } from 'react-router-dom'
 import App from './App'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'
-import './index.css'
+import './components/css/index.css'
 import { applyTelegramTheme } from './theme'
 
 // Apply Telegram theme if available
