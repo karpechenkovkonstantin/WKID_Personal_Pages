@@ -173,23 +173,24 @@ function handleGetUserQuality(e) {
       
       extUserIndices.forEach(userIndex => {
         // Добавляем оценки
-        allGrades.push({
-          day: extDates[userIndex],
-          value: QUALITY_GRADES[extRatings[userIndex]]
-        });
-        
-        // Добавляем информацию о оценках
-        allGradesInfo[extDates[userIndex]] = {
-          reaction: extBody
+        if (QUALITY_GRADES[extRatings[userIndex]] > 0) {
+          allGrades.push({
+            day: extDates[userIndex],
+            value: QUALITY_GRADES[extRatings[userIndex]]
+          });
+          // Добавляем информацию о оценках
+          allGradesInfo[extDates[userIndex]] = {
+            reaction: extBody
             .map((row, rowIndex) => ({ 
               dictIndex: rowIndex,
               value: row[userIndex]
             }))
             .filter(item => item.value !== "Не противоречит"),
-          files: extFiles[userIndex],
-          records: extRecords[userIndex],
-          dates: extDates[userIndex],
-        };
+            files: extFiles[userIndex],
+            records: extRecords[userIndex],
+            dates: extDates[userIndex],
+          };
+        }
       });
     }
     

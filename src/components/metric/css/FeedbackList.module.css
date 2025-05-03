@@ -55,6 +55,7 @@
 .feedback-description {
   font-weight: bold;
   color: var(--tg-theme-hint-color, #888888);
+  font-size: 0.8em;
 }
 
 .no-feedback {

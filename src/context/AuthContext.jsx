@@ -51,7 +51,6 @@ export function AuthProvider({ children }) {
         try {
           const decoded = jwtDecode(token);
           if (decoded.exp * 1000 < Date.now()) {
-            logout();
             return false;
           } else {
             const isValid = await verifyToken();
@@ -60,13 +59,12 @@ export function AuthProvider({ children }) {
               setLoading(false);
               return true;
             } else {
-              logout();
               return false;
             }
           }
         } catch (error) {
           console.error('Error decoding token:', error);
-          logout();
+
           return false;
         }
       } else {
@@ -117,7 +115,7 @@ export function AuthProvider({ children }) {
         
         // Если ни токен, ни Telegram не прошли, показываем форму логина
         if (!telegramValid) {
-          setLoading(false);
+          logout();
         }
       }
     };
@@ -167,6 +165,7 @@ export function AuthProvider({ children }) {
         setToken(response.data.token)
         localStorage.setItem('token', response.data.token)
         getUserInfo(response.data.token)
+        setLoading(false)
         return true
       }
       setLoading(false)
