@@ -1,8 +1,8 @@
 import { ResponsiveRadar } from '@nivo/radar'
 import { useState, useEffect } from 'react'
-import { LoadingOverlay, SkeletonCard } from '../components/Loading'
+import { LoadingOverlay, SkeletonCard } from '../Loading'
 
-const Retention = ({data}) => {
+const Retention = ({data, isMobile}) => {
     const [isLoading, setIsLoading] = useState(true)
     const [visualData, setVisualData] = useState([])
 
@@ -35,12 +35,14 @@ const Retention = ({data}) => {
                         indexBy="module"
                         maxValue={100}
                         valueFormat=">-.2f"
-                        margin={{ top: 70, right: 80, bottom: 70, left: 80 }}
+                        margin={isMobile 
+                            ? { top: 40, right: 40, bottom: 40, left: 40 } 
+                            : { top: 70, right: 80, bottom: 70, left: 80 }}
                         curve="linearClosed"
                         borderColor={{ from: 'color', modifiers: [] }}
                         gridShape="linear"
                         gridLabelOffset={36}
-                        dotSize={10}
+                        dotSize={isMobile ? 8 : 10}
                         dotColor={{ theme: 'background' }}
                         dotBorderWidth={2}
                         dotBorderColor={{ from: 'color', modifiers: [] }}
@@ -52,7 +54,7 @@ const Retention = ({data}) => {
                         theme={{
                             text: {
                                 fill: textColor,
-                                fontSize: 12,
+                                fontSize: isMobile ? 10 : 12,
                             },
                             grid: {
                                 line: {
