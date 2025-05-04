@@ -69,17 +69,16 @@ export function ThemeProvider({ children }) {
     
     // Метод 1: Проверяем параметры Telegram WebApp, если доступны
     if (window.Telegram?.WebApp) {
-      const { backgroundColor, themeParams } = window.Telegram.WebApp;
+      const { backgroundColor, colorScheme } = window.Telegram.WebApp;
       
       // Сохраняем цвет фона Telegram для последующего использования
       if (backgroundColor) {
         customBackgroundColor = backgroundColor;
       }
       
-      // Проверяем цвет текста для определения темной темы
-      if (themeParams?.text_color) {
-        isDark = themeParams.text_color.toLowerCase() !== '#000000' && 
-                themeParams.text_color.toLowerCase() !== 'rgb(0, 0, 0)';
+      // Напрямую используем colorScheme из Telegram WebApp API
+      if (colorScheme) {
+        isDark = colorScheme === 'dark';
       }
     } 
     

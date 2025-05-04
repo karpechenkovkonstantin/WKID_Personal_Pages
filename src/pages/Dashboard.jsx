@@ -61,8 +61,9 @@ function Dashboard() {
   return (
     <div className="fade-in">
       <LoadingOverlay isLoading={isLoading}>
+        <h2>{user.name}</h2>
         <div className="user-info">
-          <h4>{user.name}</h4>
+          <h4>Общая информация</h4>
           <p>Email: {user.email}</p>
           <p>Должность: {user.position}</p>
           <p>Отдел: {user.department}</p>
