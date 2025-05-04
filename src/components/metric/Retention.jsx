@@ -29,6 +29,7 @@ const Retention = ({data, isMobile}) => {
 
     return (
         <div className='metric-container fade-in' style={{ height: '50vmax', marginTop: '20px', marginBottom: '20px' }}>
+            <h3 style={{textAlign: 'center', marginTop: '0', marginBottom: '15px', fontSize: '16px', color: textColor}}> Продления по модулям</h3>
             <LoadingOverlay isLoading={isLoading}>
                 {data.length > 0 && !isLoading ? (
                     <ResponsiveRadar
