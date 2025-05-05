@@ -89,14 +89,20 @@ const FeedbackList = forwardRef(({ feedback, selectedDate, isMobile }, ref) => {
             )}
           </h3>
           <ul className={styles["feedback-items"]}>
-            {dateData.reaction.map((item, index) => (
-              <li key={index} className={styles["feedback-item"]}>
-                <div className={styles["feedback-value"]}>
-                  {dict && dict[item.dictIndex] && <><span className={styles["feedback-description"]}>({dict[item.dictIndex]})</span><br/></>}
-                  {item.value}
-                </div>
+            {dateData.reaction && dateData.reaction.length > 0 ? (
+              dateData.reaction.map((item, index) => (
+                <li key={index} className={styles["feedback-item"]}>
+                  <div className={styles["feedback-value"]}>
+                    {dict && dict[item.dictIndex] && <><span className={styles["feedback-description"]}>({dict[item.dictIndex]})</span><br/></>}
+                    {item.value}
+                  </div>
+                </li>
+              ))
+            ) : (
+              <li className={styles["no-feedback"]}>
+                Существенных рекомендаций нет
               </li>
-            ))}
+            )}
           </ul>
         </div>
       )}

@@ -1,0 +1,6 @@
+.no-retention {
+    text-align: center;
+    padding: 30px;
+    color: var(--tg-theme-hint-color, #888888);
+    font-style: italic;
+  }

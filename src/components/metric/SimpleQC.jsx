@@ -31,6 +31,10 @@ const SimpleQC = ({data, onDateSelect, isMobile}) => {
             onDateSelect(day.day);
         }
     }
+
+    if ((!visualData || !visualData.quality || Object.keys(visualData.quality).length === 0) && !isLoading) {
+        return <></>;
+      }
     
     return (
         <div className={styles["qc-container"] + " " + styles["fade-in"]} ref={containerRef}>
@@ -77,13 +81,15 @@ const SimpleQC = ({data, onDateSelect, isMobile}) => {
                                 }
                             }}
                             tooltip={({ day, value, color }) => (
-                                <div className={styles["calendar-tooltip"]}>
-                                    <span className={styles["tooltip-date"]}>{day}</span>
-                                    <span className={styles["tooltip-value"]} style={{ color }}>
-                                        Оценка: {value > 0 ? value : 'Н/Д'}
-                                    </span>
-                                    {value > 0 && <div className={styles["tooltip-hint"]}>Нажмите, чтобы увидеть отзыв</div>}
-                                </div>
+                                !isMobile ? (
+                                    <div className={styles["calendar-tooltip"]}>
+                                        <span className={styles["tooltip-date"]}>{day}</span>
+                                        <span className={styles["tooltip-value"]} style={{ color }}>
+                                            Оценка: {value > 0 ? value : 'Н/Д'}
+                                        </span>
+                                        {value > 0 && <div className={styles["tooltip-hint"]}>Нажмите, чтобы увидеть отзыв</div>}
+                                    </div>
+                                ) : null
                             )}
                         />
                     </div>
