@@ -2,7 +2,7 @@ import { ResponsiveRadar } from '@nivo/radar'
 import { useState, useEffect } from 'react'
 import { LoadingOverlay } from '../Loading'
 import { useTheme } from '../../context/ThemeContext'
-
+import styles from './css/Retention.module.css'
 const Retention = ({data, isMobile}) => {
     const [isLoading, setIsLoading] = useState(true)
     const [visualData, setVisualData] = useState([])
@@ -26,6 +26,15 @@ const Retention = ({data, isMobile}) => {
 
     // Get the current text color from CSS variables
     const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim();
+
+    if ((!data || data.length === 0) && !isLoading) {
+        return (
+            <>
+                <h3 style={{marginTop: '15px', marginBottom: '15px', fontSize: 'calc(1.325rem + .9vw)', color: textColor}}> Продления по модулям</h3>
+                <div className={styles["no-retention"]}>Данные для выбранного пользователя отсутствуют</div>
+            </>
+        )
+      }
 
     return (
         <div className='metric-container fade-in' style={{ height: '50vmax', marginTop: '20px', marginBottom: '20px' }}>

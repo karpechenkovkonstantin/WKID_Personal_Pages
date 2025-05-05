@@ -23,7 +23,7 @@ function Dashboard() {
         setRetentionData(data?.retention||[])
       })
       fetches?.getUserQuality().then(data => {
-        setQualityData(data||[])
+        setQualityData(data||{grades:[],reviews:{}})
       })
     }
   }, [user])
@@ -57,7 +57,7 @@ function Dashboard() {
       </div>
     )
   }
-
+  
   return (
     <div className="fade-in">
       <LoadingOverlay isLoading={isLoading}>
@@ -70,12 +70,12 @@ function Dashboard() {
         </div>
         
         <Retention data={retentionData} isMobile={isMobile}/>
-        <SimpleQC data={qualityData?.grades} onDateSelect={handleDateSelect} isMobile={isMobile}/>
+        <SimpleQC data={qualityData?.error ? {error:qualityData?.error} : qualityData?.grades} onDateSelect={handleDateSelect} isMobile={isMobile}/>
         
         <div className="feedback-section">
           <h2>Обратная связь</h2>
           <FeedbackList 
-            feedback={qualityData?.reviews} 
+            feedback={qualityData?.error ? {error:qualityData?.error} : qualityData?.reviews} 
             selectedDate={selectedDate} 
             isMobile={isMobile} 
             ref={feedbackRef}
