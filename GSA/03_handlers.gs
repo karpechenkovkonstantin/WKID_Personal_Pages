@@ -7,13 +7,13 @@ function handleAuthentication(e) {
   const username = contents?.username || '';
   const password = contents?.password || '';
   
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(USERS_SHEET);
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ACL_SHEET);
   const data = sheet.getDataRange().getValues();
   
   const user = data.slice(1).find(col => 
     col[0].toString() === username.toString() && 
     col[1].toString() === hashPassword(password).toString() && 
-    col[3].toString().toUpperCase() === "TRUE"
+    col[4].toString().toUpperCase() === "TRUE"
   );
 
   if (user) {
@@ -33,14 +33,33 @@ function handleAuthentication(e) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
+const handleGetTeachersList = (e) => {
+  const contents = e?.postData?.contents ? JSON.parse(e.postData.contents) : {};
+  const token = contents?.token || '';
+  const payload = verifyJWT(token);
+  if (!payload) {
+    return ContentService.createTextOutput(JSON.stringify({ error: 'Invalid token' }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  if (!payload.group.split(';').map(group => group).includes('g1')) {
+    return ContentService.createTextOutput(JSON.stringify({ error: 'User is not have access to this function' }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ACL_SHEET);
+  const data = sheet.getDataRange().getValues();
+  const teachers = data.slice(1).map(row => row[5]).filter(teacher => teacher !== "");
+  return ContentService.createTextOutput(JSON.stringify({ teachers }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
 function handleAuthTelegram(e) {
   const telegramId = e?.postData?.contents ? JSON.parse(e.postData.contents).telegramId : '';
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(USERS_SHEET);
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ACL_SHEET);
   const data = sheet.getDataRange().getValues();
   
   const user = data.slice(1).find(col => 
-    col[2].toString() === telegramId.toString() && 
-    col[3].toString().toUpperCase() === "TRUE"
+    col[3].toString() === telegramId.toString() && 
+    col[4].toString().toUpperCase() === "TRUE"
   );
 
   if (user) {
@@ -66,9 +85,9 @@ function handleGetUserInfo(payload) {
     return { error: 'Invalid token' };
   }
   
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(INFO_SHEET);
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ACL_SHEET);
   if (!sheet) {
-    return { error: 'Info sheet not found' };
+    return { error: 'ACL sheet not found' };
   }
 
   const data = sheet.getDataRange().getValues();
@@ -80,10 +99,11 @@ function handleGetUserInfo(payload) {
   if (user) {
     // Проверяем, что все необходимые поля существуют
     const userInfo = {
-      name: user[1] || '',
-      email: user[2] || '',
-      position: user[3] || '',
-      department: user[4] || ''
+      group: user[2] || '',
+      name: user[5] || '',
+      email: user[6] || '',
+      position: user[7] || '',
+      department: user[8] || ''
     };
 
     return userInfo;
@@ -94,12 +114,16 @@ function handleGetUserInfo(payload) {
 
 function handleGetUserRetention(e) {
   try {
-    const token = e?.postData?.contents ? JSON.parse(e.postData.contents).token : '';
+    const contents = e?.postData?.contents ? JSON.parse(e.postData.contents) : {};
+    const token = contents?.token || '';
     const payload = verifyJWT(token);
-    
     if (!payload) {
       return ContentService.createTextOutput(JSON.stringify({ error: 'Invalid token' }))
         .setMimeType(ContentService.MimeType.JSON);
+    }
+    let searchName = payload.name;
+    if (payload.group.split(';').map(group => group).includes('g1')) {
+      searchName = contents?.teacherId || payload.name;
     }
     
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(RETENTION_SHEET);
@@ -109,7 +133,7 @@ function handleGetUserRetention(e) {
     }
 
     const data = sheet.getDataRange().getValues();
-    const retention = data.slice(1).find(row => row[0].toString().startsWith(payload.name.toString())); 
+    const retention = data.slice(1).find(row => row[0].toString().startsWith(searchName.toString())); 
     if (retention) {
       const filteredData = retention.slice(4).filter((_, index) => index % 4 === 0);
       return ContentService.createTextOutput(JSON.stringify({ retention: filteredData }))
@@ -131,14 +155,18 @@ function handleGetUserRetention(e) {
 
 function handleGetUserQuality(e) {
   try {
-    const token = e?.postData?.contents ? JSON.parse(e.postData.contents).token : '';
+    const contents = e?.postData?.contents ? JSON.parse(e.postData.contents) : {};
+    const token = contents?.token || '';
     const payload = verifyJWT(token);
     
     if (!payload) {
       return ContentService.createTextOutput(JSON.stringify({ error: 'Invalid token' }))
         .setMimeType(ContentService.MimeType.JSON);
     }
-    
+    let searchName = payload.name;
+    if (payload.group.split(';').map(group => group).includes('g1')) {
+      searchName = contents?.teacherId || payload.name;
+    }
     // Инициализируем пустые массивы и объекты для хранения результатов
     const allGrades = [];
     const allGradesInfo = {};
@@ -167,7 +195,7 @@ function handleGetUserQuality(e) {
       });
       
       const extUserIndices = extData[0].reduce((acc, row, index) => {
-        if (row.startsWith(payload?.name)) acc.push(index);
+        if (row.startsWith(searchName)) acc.push(index);
         return acc;
       }, []);
       
@@ -232,20 +260,6 @@ function handleGetUserQuality(e) {
   }
 }
 
-function handleGetQualityExt(e) {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(QUALITY_EXT_SHEET);
-  if (!sheet) {
-    return ContentService.createTextOutput(JSON.stringify({ error: 'Quality ext sheet not found' }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-
-  const data = sheet.getDataRange().getValues();
-
-  return ContentService.createTextOutput(JSON.stringify({ grades: data }))
-    .setMimeType(ContentService.MimeType.JSON);
-}
-
-
 
 // Обработка проверки токена
 function handleVerifyToken(e) {
@@ -259,10 +273,10 @@ function handleVerifyToken(e) {
     }
     
     // Проверяем, существует ли пользователь в таблице
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(USERS_SHEET);
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ACL_SHEET);
     const data = sheet.getDataRange().getValues();
     
-    const user = data.slice(1).find(row => row[0] === payload.userid && row[3].toString().toUpperCase() === "TRUE");
+    const user = data.slice(1).find(row => row[0] === payload.userid && row[4].toString().toUpperCase() === "TRUE");
     if (user) {
       return ContentService.createTextOutput(JSON.stringify({ valid: true }))
         .setMimeType(ContentService.MimeType.JSON);

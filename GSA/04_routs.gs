@@ -27,11 +27,11 @@ function doPost(e) {
       case 'getUserRetention':
         response = handleGetUserRetention(e);
         break;
-      case 'getUserQuality':
+      case 'getUserQualityExt':
         response = handleGetUserQuality(e);
         break;
-      case 'getQualityExt':
-        response = handleGetQualityExt(e);
+      case 'getTeachersList':
+        response = handleGetTeachersList(e);
         break;
       default:
         response = ContentService.createTextOutput(JSON.stringify({ error: 'Invalid action' }))
