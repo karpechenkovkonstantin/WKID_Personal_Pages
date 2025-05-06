@@ -3,10 +3,8 @@
 ////////////////////////////////////////////////////////////
 
 // Названия листов  
-const USERS_SHEET = 'users';
-const INFO_SHEET = 'info';
+const ACL_SHEET = 'ACL';
 const RETENTION_SHEET = 'retention';
-const QUALITY_SHEET = 'quality';
 const QUALITY_EXT_SHEET = ['quality_ext_1', 'quality_ext_2', 'quality_ext_3'];
 // Секретный ключ
 const SECRET_KEY = 'your-secret-key'; // Замените на ваш секретный ключ 

@@ -13,6 +13,14 @@ export function AuthProvider({ children }) {
 
   const API_URL = process.env.VITE_APP_SCRIPT_URL || import.meta.env.VITE_APP_SCRIPT_URL
 
+  const groupDict = {
+    'g1': 'Администраторы',
+    'g2': 'Преподаватели',
+    'g3': 'ОКК',
+    'g4': '',
+    'g5': '',
+  }
+
   const fetchConfig = {
         headers: {
           'Content-Type': "text/plain;charset=utf-8",
@@ -125,7 +133,7 @@ export function AuthProvider({ children }) {
 
   const getUserInfo = async (jwt) => {
     try {
-      const decoded = jwtDecode(jwt);
+      let decoded = jwtDecode(jwt);
       setUser(decoded);
       return decoded;
     } catch (error) {
@@ -134,22 +142,6 @@ export function AuthProvider({ children }) {
     }
   }
 
-  const fetchUserInfo = async () => {
-    const responseData = {
-      action: 'getUserInfo',
-      token: localStorage.getItem('token')||token
-    }
-    try {
-      axios.post(`${API_URL}`, responseData, fetchConfig).then((response)=>{
-        setUser(response.data)
-      })
-    } catch (error) {
-      console.error('Error fetching user info:', error)
-      logout()
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const login = async (username, password) => {
     setLoading(true)
@@ -184,52 +176,37 @@ export function AuthProvider({ children }) {
     setLoading(false);
   }
 
-  const getUserRetention = async () => {
+  const fetchData = async (action, payload={}) => {
     const responseData = {
-      action: 'getUserRetention',
-      token: localStorage.getItem('token')||token
+      action,
+      token: localStorage.getItem('token')||token,
+      ...payload
     }
     try {
       const response = await axios.post(`${API_URL}`, responseData, fetchConfig)
       return response.data
     } catch (error) {
-      console.error('Error fetching user retention:', error)
+      console.error(`Error fetching ${action}:`, error)
       return null
     }
   }
 
-  const getUserQuality = async () => {
-    const responseData = {
-      action: 'getUserQuality',
-      token: localStorage.getItem('token')||token
-    }
-    try {
-      const response = await axios.post(`${API_URL}`, responseData, fetchConfig)
-      return response.data
-    } catch (error) {
-      console.error('Error fetching user quality:', error)
-      return null
-    }
-    
+  const getUserRetention = async (teacherId = null) => {
+    return fetchData('getUserRetention', teacherId ? { teacherId } : {})
   }
 
-  const getQualityExt = async () => {
-    const responseData = {
-      action: 'getQualityExt',
-      token: localStorage.getItem('token')||token
-    }
-    try {
-      const response = await axios.post(`${API_URL}`, responseData, fetchConfig)
-      return response.data
-    } catch (error) {
-      console.error('Error fetching quality ext:', error)
-      return null
-    }
+  const getUserQualityExt = async (teacherId = null) => {
+    return fetchData('getUserQualityExt', teacherId ? { teacherId } : {})
+  }
+
+  const getTeachersList = async () => {
+    return fetchData('getTeachersList')
   }
 
   const value = {
     token,
     user,
+    groupDict,
     loading,
     login,
     logout,
@@ -237,8 +214,8 @@ export function AuthProvider({ children }) {
     tg,
     fetches:{
       getUserRetention,
-      getUserQuality,
-      getQualityExt
+      getUserQualityExt,
+      getTeachersList
     }
   }
 
